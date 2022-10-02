@@ -13,6 +13,7 @@ tmp-test-reports
 
 # production
 /build
+storybook-static/
 
 # misc
 .DS_Store
@@ -22,6 +23,7 @@ tmp-test-reports
 .env.production.local
 
 .vscode
+.idea 
 
 npm-debug.log*
 yarn-debug.log*
@@ -29,3 +31,4 @@ yarn-error.log*
 
 /public/env-config.js
 env-config.js
+

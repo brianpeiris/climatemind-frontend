@@ -1,15 +1,11 @@
+import { Box, Button, Drawer, Theme, Typography } from '@material-ui/core';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import React, { useState } from 'react';
-import {
-  Typography,
-  Theme,
-  Button,
-  SwipeableDrawer,
-  Box,
-} from '@material-ui/core';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
-
-import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
-import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import { ReactComponent as DownArrowIcon } from '../assets/icon-arrow-down-white.svg';
+import { ReactComponent as UpArrowIcon } from '../assets/icon-arrow-up-white.svg';
+import { useLocation } from 'react-router-dom';
+import { TLocation } from '../types/Location';
+import { useUrlParamQuery } from '../hooks/useUrlParamQuery';
 
 export interface DrawerDashboardProps {
   drawerTitle?: string;
@@ -20,7 +16,7 @@ export interface DrawerDashboardProps {
 }
 
 const DrawerDashboard: React.FC<DrawerDashboardProps> = ({
-  drawerTitle = 'conversations',
+  drawerTitle = 'Ongoing Conversations',
   children,
   bgColor,
   offsetAnchorY = 0,
@@ -32,8 +28,8 @@ const DrawerDashboard: React.FC<DrawerDashboardProps> = ({
         padding: `0 8px`,
       },
       paper: (props: DrawerDashboardProps) => ({
-        borderTopLeftRadius: '10px',
-        borderTopRightRadius: '10px',
+        borderTopLeftRadius: '24px',
+        borderTopRightRadius: '24px',
         height: `calc(100% - ${props.spaceToTop}px)`,
         backgroundColor: bgColor ? bgColor : '#FFF',
       }),
@@ -41,16 +37,18 @@ const DrawerDashboard: React.FC<DrawerDashboardProps> = ({
         padding: `${theme.spacing(1)}px ${theme.spacing(2)}px`,
       },
       buttonDrawer: (props: DrawerDashboardProps) => ({
-        position: 'absolute',
+        position: 'fixed',
         bottom: props.offsetAnchorY,
+        height: '88px',
         left: 0,
-        borderTopLeftRadius: '10px',
-        borderTopRightRadius: '10px',
+        borderTopLeftRadius: '24px',
+        borderTopRightRadius: '24px',
         backgroundColor: bgColor ? bgColor : '#FFF',
       }),
       buttonText: {
         letterSpacing: '1pt',
-        fontSize: '10px',
+        fontSize: '1.125em',
+        textTransform: 'none',
       },
     })
   );
@@ -65,7 +63,13 @@ const DrawerDashboard: React.FC<DrawerDashboardProps> = ({
 
   const classes = useStyles(props);
 
-  const [showDash, setShowDash] = useState(false);
+  // Check if route is provided a location state with an id. If so, the id of the conversation
+  // should be in focus and the conversation drawer should be open.
+  const location = useLocation<TLocation>();
+  const query = useUrlParamQuery();
+  const [showDash, setShowDash] = useState(
+    location?.state?.id || query.get('conversation') ? true : false
+  );
 
   const handleShowClick = () => {
     setShowDash(!showDash);
@@ -78,9 +82,10 @@ const DrawerDashboard: React.FC<DrawerDashboardProps> = ({
         className={classes.buttonDrawer}
         onClick={handleShowClick}
         data-testid="dashboard-drawer-button"
+        aria-label="open conversations drawer"
       >
         <Box display="flex" flexDirection="column" alignItems="center">
-          <KeyboardArrowUpIcon />
+          <UpArrowIcon />
           <Typography
             className={classes.buttonText}
             gutterBottom
@@ -91,25 +96,26 @@ const DrawerDashboard: React.FC<DrawerDashboardProps> = ({
           </Typography>
         </Box>
       </Button>
-      <SwipeableDrawer
+      <Drawer
         classes={{
           paper: classes.paper,
         }}
         anchor="bottom"
         open={showDash}
         onClose={handleShowClick}
-        onOpen={handleShowClick}
+        // onOpen={handleShowClick} - Add this back in if we make the drawer swipable again
       >
         <Button
           fullWidth
           className={classes.closeDrawer}
           onClick={handleShowClick}
           data-testid="close-drawer-button"
+          aria-label="close conversations drawer"
         >
-          <KeyboardArrowDownIcon />
+          <DownArrowIcon />
         </Button>
         <div className={classes.dashContainer}>{children}</div>
-      </SwipeableDrawer>
+      </Drawer>
     </div>
   );
 };

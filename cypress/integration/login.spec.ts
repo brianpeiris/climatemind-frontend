@@ -33,7 +33,6 @@ describe('Login', () => {
     cy.contains(/Sign In/i).should('be.visible');
     cy.url().should('include', '/login');
     cy.checkAccessibility(terminalLog);
-    cy.percySnapshot('Login');
   });
 
   it('has a login button and it is initially disabled', () => {
@@ -46,7 +45,7 @@ describe('Login', () => {
     cy.get('input#password').type(testUser.password);
     cy.switchToIframe('iframe[title="reCAPTCHA"]').click();
     cy.contains(/log in/i).click();
-    cy.get('.MuiAlert-root').contains('Welcome, Test');
+    cy.get('.MuiAlert-root').contains('Welcome back, Test');
     cy.url().should('include', '/climate-feed');
   });
 
@@ -86,7 +85,7 @@ describe('Login', () => {
     cy.visit('/login');
     cy.get('input#password').click();
     cy.get('input#email').click();
-    cy.contains(/Please enter your password/i);
+    cy.contains(/Please enter a password./i);
   });
 
   it('does not let the user in with invalid credentials', () => {
@@ -104,5 +103,21 @@ describe('Login', () => {
     cy.contains(/log in/i).click();
     cy.url().should('include', '/login');
     cy.get('.MuiAlert-root').contains(/Wrong email or password\. Try again\./i);
+  });
+
+  it('user can open password reset dialog and close it again', () => {
+    cy.visit('/login');
+    cy.contains(/Send reset link/i).click();
+    cy.contains(/Reset your password/i);
+    cy.contains(/Cancel/i).click();
+    cy.contains(/Reset your password/i).should('not.exist');
+  });
+
+  it('allows user to request a password reset mail', () => {
+    cy.visit('/login');
+    cy.contains(/Send reset link/i).click();
+    cy.get("input[placeholder=\"Email address\"]").type(testUser.email);
+    cy.contains(/Submit/i).click()
+    cy.contains(/Reset your password/i).should('not.exist');
   });
 });

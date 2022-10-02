@@ -13,6 +13,7 @@ export const useSession = () => {
     hasAcceptedCookies,
     setHasAcceptedCookies,
     quizId,
+    sessionState,
   } = session;
 
   // We dont want to clear has acceptedPrivacyPolicy or the session Id then retaiking the quiz
@@ -22,6 +23,19 @@ export const useSession = () => {
         ...prevSession,
         zipCode: null,
         quizId: null,
+      }));
+    }
+  };
+
+  // Clear the SessionId as well
+  const clearSessionId = () => {
+    if (setSession) {
+      setSession((prevSession) => ({
+        ...prevSession,
+        zipCode: null,
+        quizId: null,
+        sessionId: null,
+        sessionState: 'new',
       }));
     }
   };
@@ -40,27 +54,30 @@ export const useSession = () => {
 
   const setZipCode = (zipCode: string) => {
     if (setSession) {
-      setSession({
-        ...session,
-        zipCode: zipCode,
-      });
+      setSession((prevSession) => ({
+        ...prevSession,
+        zipCode,
+      }));
     }
   };
 
   const setQuizId = (quizId: string) => {
     if (setSession) {
-      setSession({
-        ...session,
+      setSession((prevSession) => ({
+        ...prevSession,
         quizId,
-      });
+      }));
     }
   };
 
-  // TODO: Tidy UP
-  // // intialise session-id
-  // useEffect(() => {
-  //   initSessionId && setSessionId(initSessionId);
-  // }, [initSessionId, setSessionId]);
+  const setSessionState = (newState: 'new' | 'loading' | 'active') => {
+    if (setSession) {
+      setSession((prevSession) => ({
+        ...prevSession,
+        sessionState: newState,
+      }));
+    }
+  };
 
   // add session id to all api requests as a custom header
   useEffect(() => {
@@ -78,8 +95,11 @@ export const useSession = () => {
     setSessionId,
     setZipCode,
     clearSession,
+    clearSessionId,
     quizId,
     setQuizId,
+    sessionState,
+    setSessionState,
     hasAcceptedCookies,
     setHasAcceptedCookies,
   };

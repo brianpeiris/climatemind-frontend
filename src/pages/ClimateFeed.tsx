@@ -1,7 +1,7 @@
 import { Typography } from '@material-ui/core';
 import React from 'react';
 import { COLORS } from '../common/styles/CMTheme';
-import Card from '../components/Card';
+import Card from '../components/Card/Card';
 import CardHeader from '../components/CardHeader';
 import EffectOverlay from '../components/EffectOverlay';
 import Loader from '../components/Loader';
@@ -10,7 +10,6 @@ import PageTitle from '../components/PageTitle';
 import ScrollToTopOnMount from '../components/ScrollToTopOnMount';
 import Wrapper from '../components/Wrapper';
 import { useClimateFeed } from '../hooks/useClimateFeed';
-// import { useNoSessionRedirect } from '../hooks/useNoSessionRedirect';
 import Error500 from '../pages/Error500';
 
 const ClimateFeed: React.FC = () => {

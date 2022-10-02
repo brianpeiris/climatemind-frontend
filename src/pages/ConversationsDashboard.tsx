@@ -1,37 +1,41 @@
 import { Box, Grid, Typography } from '@material-ui/core';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { useFormik } from 'formik';
 import React, { useState } from 'react';
-import { useClipboard } from 'use-clipboard-copy';
-import { useConversations } from '../hooks/useConversations';
+import { useHistory } from 'react-router-dom';
 import { buildReactUrl } from '../api/apiHelper';
 import { APPBAR_HEIGHT, COLORS } from '../common/styles/CMTheme';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 import { ConversationsList } from '../components/ConversationsList';
 import CopyLinkDialog from '../components/CopyLinkDialog';
 import DrawerDashboard from '../components/DrawerDashboard';
 import TextInput from '../components/TextInput';
 import { generateLinkSchema } from '../helpers/validationSchemas';
+import { useAuth } from '../hooks/auth/useAuth';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import { useToast } from '../hooks/useToast';
+import { useConversations } from '../hooks/useConversations';
+import { useCopyLink } from '../hooks/useCopyLink';
 import { SHARE_OPTIONS } from '../shareSettings';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import ROUTES from '../components/Router/RouteConfig';
 
 const useStyles = makeStyles(() =>
   createStyles({
-    root: {},
+    root: {
+      backgroundColor: COLORS.PRIMARY,
+    },
     section: {
-      minHeight: '100vh',
+      minHeight: '600px',
       display: 'grid',
       gridTemplateColumns: '1fr',
       gridTemplateRows: '1fr',
-      justify: 'center',
+      justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: COLORS.ACCENT7,
     },
     container: {
       textAlign: 'center',
-      maxWidth: '640px',
-      margin: '0 auto',
+      maxWidth: '370px',
+      minWidth: '288px',
+      margin: '20vh auto',
       padding: '0 1em',
     },
     form: {
@@ -42,12 +46,34 @@ const useStyles = makeStyles(() =>
       marginBottom: '-20px',
       fontWeight: 700,
     },
+    inputBox: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: '6px',
+      paddingTop: '14px',
+      textIndent: '10px',
+      boxShadow: '0px 10px 20px #C3C3C3',
+    },
+    btnCreateLink: {
+      border: 'none',
+      backgroundColor: COLORS.DEEP_PURPLE,
+      color: 'white',
+      fontWeight: 'lighter',
+      letterSpacing: '0.2rem',
+      '&:hover': {
+        background: '#7a26cd',
+        cursor: 'pointer',
+      },
+    },
+    btnDrawerDashboard: {
+      '&hover': {
+        background: '#d09dfe',
+      },
+    },
   })
 );
 
 export const ConversationsDashBoard: React.FC<{}> = () => {
   const classes = useStyles();
-  const { showToast } = useToast();
   const [open, setOpen] = useState(false);
   const [friendValue, setFriendValue] = useState('');
   const yPadding = 3; // Padding between boxes
@@ -55,21 +81,15 @@ export const ConversationsDashBoard: React.FC<{}> = () => {
   const offset = isSm ? 56 : 0;
   const { addConversation, conversationId } = useConversations();
   const link = buildReactUrl(SHARE_OPTIONS.endpoint) + '/' + conversationId;
+  const { copyLink, clipboard } = useCopyLink();
 
-  const clipboard = useClipboard({
-    onSuccess() {
-      showToast({
-        message: 'Link was successfully copied',
-        type: 'success',
-      });
-    },
-    onError() {
-      showToast({
-        message: 'Failed to copy link',
-        type: 'error',
-      });
-    },
-  });
+  // if not logged in, redirect to conversations landing
+  const { isLoggedIn, isLoading } = useAuth();
+  const { push } = useHistory();
+
+  if (!isLoading && !isLoggedIn) {
+    push(ROUTES.ROUTE_CONVERSATIONS);
+  }
 
   // Set initial form values and handle submission
   const formik = useFormik({
@@ -77,11 +97,12 @@ export const ConversationsDashBoard: React.FC<{}> = () => {
       friend: '',
     },
     validationSchema: generateLinkSchema,
-    onSubmit: (values) => {
+    onSubmit: (values, { resetForm }) => {
       setOpen(true);
       setFriendValue(values.friend);
       // post friend value and generate link from response Id
       addConversation(values.friend);
+      resetForm();
     },
   });
 
@@ -90,67 +111,84 @@ export const ConversationsDashBoard: React.FC<{}> = () => {
 
   const handleClose = () => {
     setOpen(false);
-    if (!clipboard.isSupported()) {
-      showToast({
-        message: 'Copy-to-clipboard not supported by your browser',
-        type: 'error',
-      });
-      return;
-    }
-    clipboard.copy(link);
+    copyLink(link);
   };
 
   return (
     <div className={classes.root}>
       <section className={classes.section}>
         <div className={classes.container}>
-          <form className={classes.form} onSubmit={formik.handleSubmit}>
+          <Box>
+            <Typography variant="h3">Start a conversation</Typography>
+          </Box>
+          <Box style={{ marginTop: '10px' }}>
+            <Typography variant="body2" style={{ fontWeight: 'normal' }}>
+              Send a personalized link to the values quiz to a friend or family
+              member.
+            </Typography>
+          </Box>
+
+          <form
+            style={{ marginTop: '8vh' }}
+            className={classes.form}
+            onSubmit={formik.handleSubmit}
+          >
             <Grid>
               <Typography variant="body1" className={classes.inputTitle}>
-                Add their name
+                Name of recipient
               </Typography>
               <Box py={yPadding}>
                 <TextInput
                   name="friend"
                   id="friend"
-                  label="Name to send to"
+                  placeholder={' Try "Peter Smith" or "Mom"'}
                   value={formik.values.friend}
                   onBlur={formik.handleBlur}
                   onChange={formik.handleChange}
-                  placeholder=""
                   fullWidth={true}
-                  error={formik.touched.friend && Boolean(formik.errors.friend)}
-                  helperText={formik.touched.friend && formik.errors.friend}
-                  variant="filled"
-                  color="secondary"
                   margin="none"
                   ref={clipboard.target}
+                  className={classes.inputBox}
                 />
+              </Box>
+              <Box>
+                <Typography
+                  style={{
+                    marginTop: '-5px',
+                    textAlign: 'left',
+                    fontWeight: 'normal',
+                    fontSize: '0.9em',
+                  }}
+                  variant="body2"
+                >
+                  Please make a new link each time you want to speak to a new
+                  person.
+                </Typography>
               </Box>
             </Grid>
             <Box component="div" textAlign="center" py={yPadding}>
               <Button
                 variant="contained"
-                disabled={!(formik.dirty && formik.isValid)}
-                color="primary"
+                disabled={!formik.dirty}
                 onClick={() => formik.handleSubmit}
                 type="submit"
                 disableElevation
                 data-testid="generate-link-button"
+                className={classes.btnCreateLink}
               >
-                Generate Link
+                Create Link
               </Button>
             </Box>
           </form>
         </div>
 
         <DrawerDashboard
-          bgColor={COLORS.ACCENT8}
-          drawerTitle="conversations"
+          bgColor="#E0C4FE"
+          drawerTitle="Ongoing Conversations"
           offsetAnchorY={offset}
           spaceToTop={spaceToTop}
         >
-          <Grid container justify="center">
+          <Grid container justifyContent="center">
             <ConversationsList />
           </Grid>
         </DrawerDashboard>

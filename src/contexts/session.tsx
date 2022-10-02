@@ -2,7 +2,6 @@ import React, { createContext, useState, useEffect } from 'react';
 import { TSession } from '../types/Session';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useGetSessionId } from '../hooks/useGetSessionId';
-import { useSessionStorage } from '../hooks/useSessionStorage';
 
 export type TSessionDispatch = React.Dispatch<React.SetStateAction<TSession>>;
 
@@ -16,43 +15,36 @@ export const SessionProvider: React.FC = ({ children }) => {
     false
   );
 
-  const { data } = useSessionStorage('', 'quizId');
-  let quizIdFromStorage:string | null = data || null;
-  
-  // gets a unique session id on load for the session and stores in session storage
-  const fetchedSessionId = useGetSessionId();
+  const [quizIdFromStorage] = useLocalStorage('quizId', '');
+  const { sessionId } = useGetSessionId();
 
   const [session, setSession] = useState<TSession>({
     sessionId: null,
-    quizId: null,
+    quizId: quizIdFromStorage,
     zipCode: null,
+    sessionState: 'new',
     hasAcceptedCookies,
     setHasAcceptedCookies,
   });
 
-  // Updated state when localStorage is updated for hasAcceptedCookies
+  // Set the session id each time it changes
+  useEffect(() => {
+    setSession((prevState) => ({
+      ...prevState,
+      sessionId,
+    }));
+
+    console.log('session.tsx', { sessionId });
+  }, [sessionId]);
+
+  // Updated state when localStorage is updated for hasAcceptedCookies or quizId
   useEffect(() => {
     setSession((prevState) => ({
       ...prevState,
       hasAcceptedCookies,
-    }));
-  }, [hasAcceptedCookies]);
-
-  // We need to get the quizId from sessionStorage, if any is set, in case the user refreshes the browser 
-  useEffect(() => {
-    setSession((prevState) => ({
-      ...prevState,
       quizId: quizIdFromStorage,
     }));
-  }, [data, quizIdFromStorage]);
-
-  useEffect(() => {
-    setSession((prevState) => ({
-      ...prevState,
-      sessionId: fetchedSessionId ? fetchedSessionId : null,
-    }));
-    // Added the session.sessionId to the dep array as it is being updated to null elsewhere.
-  }, [fetchedSessionId, session.sessionId]);
+  }, [hasAcceptedCookies, quizIdFromStorage]);
 
   return (
     <SessionContext.Provider value={session}>

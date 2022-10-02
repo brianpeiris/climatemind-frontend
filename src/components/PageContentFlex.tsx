@@ -40,7 +40,7 @@ const PageContent: React.FC = ({ children }) => {
           container
           className={classes.grid}
           direction="column"
-          justify={isXS ? 'space-between' : 'flex-start'}
+          justifyContent={isXS ? 'space-between' : 'flex-start'}
           alignItems="center"
         >
           {children}

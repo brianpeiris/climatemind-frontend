@@ -2,7 +2,7 @@ import { Box, Grid } from '@material-ui/core';
 import React from 'react';
 import { useHistory } from 'react-router';
 import { COLORS } from '../common/styles/CMTheme';
-import Button from '../components/Button';
+import { Button } from '../components/Button';
 import PageContent from '../components/PageContent';
 import PageTitle from '../components/PageTitle';
 import PrevButton from '../components/PrevButton';
@@ -63,7 +63,7 @@ const PrivacyPolicy: React.FC = () => {
         {/* Privacy Policy Rendered from markdown file. */}
         <ReactMarkdown className={classes.root} children={markdown} />
 
-        <Grid item container justify="center">
+        <Grid item container justifyContent="center">
           <Box my={4}>
             <Button variant="contained" onClick={() => history.goBack()}>
               Go Back

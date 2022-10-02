@@ -7,11 +7,11 @@ import RoomIcon from '@material-ui/icons/Room';
 import React from 'react';
 
 export interface CardHeaderProps {
-  title: string;
+  title: string | undefined;
   index?: number;
   cardIcon?: 'adaptation' | 'mitigation' | 'idea' | false;
   bgColor?: string;
-  preTitle?: string;
+  preTitle?: string | undefined;
   preTitleStyle?: 'positive' | 'warning';
   isPossiblyLocal?: 0 | 1;
 }
@@ -82,17 +82,14 @@ const CardHeader: React.FC<CardHeaderProps> = ({
       <Grid
         container
         direction="row"
-        justify="flex-start"
+        justifyContent="flex-start"
         alignItems="center"
         spacing={2}
         className={classes.cardHeader}
       >
         <Box display="flex" flexDirection="row" alignItems="center">
           {cardIcon && (
-            <Grid
-              item
-              data-testid="CardIcon"
-            >
+            <Grid item data-testid="CardIcon">
               <CardIcon actionType={cardIcon} />
             </Grid>
           )}
@@ -125,7 +122,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
               <Typography
                 className={classes.title}
                 gutterBottom
-                variant="h6"
+                variant="subtitle2"
                 component="h2"
               >
                 {title}

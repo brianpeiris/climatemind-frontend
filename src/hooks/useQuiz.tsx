@@ -1,20 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { pushQuestionToDataLayer } from '../analytics';
 import { useResponses } from '../hooks/useResponses';
 import { TAnswers, TQuestion } from '../types/types';
 import { useQuestions } from './useQuestions';
 import { useSession } from './useSession';
+import { useAlignment } from './useAlignment';
+import ROUTES from '../components/Router/RouteConfig';
+import { usePostScores } from './usePostScores';
+import { useUserB } from './useUserB';
 
 export const useQuiz = () => {
-  type SetType = 'SET_ONE' | 'SET_TWO';
   const { push } = useHistory();
+  const location = useLocation();
   const { sessionId } = useSession();
-
   const { questions, questionsLoading, questionsError, currentSet } =
     useQuestions();
   const [answers, setAnswers] = useState<TAnswers | null>(null);
   const { dispatch } = useResponses();
+  const { isUserB, setIsUserB } = useAlignment();
+  const { postScores } = usePostScores();
+  const { conversationId } = useUserB();
 
   // Quiz state
   const [remainingQuestions, setRemainingQuestions] = useState<
@@ -29,12 +35,31 @@ export const useQuiz = () => {
   const [progress, setProgress] = useState(0); // Number of Questions Answered
 
   // Redirect the user to the submission page when the set is finished.
-  if (progress === 10 && currentSet === 1) {
-    push('submit');
-  }
-  if (progress === 10 && currentSet === 2) {
-    push('submit-set-two');
-  }
+  // User A
+  useEffect(() => {
+    // User B
+    if (progress === 10 && conversationId) {
+      setIsUserB(true, conversationId);
+      postScores();
+      push({
+        pathname: `${ROUTES.USERB_CORE_VALUES}/${conversationId}`,
+        state: { from: location.pathname, id: conversationId },
+      });
+    } else if (progress === 10 && currentSet === 1 && !isUserB) {
+      push(ROUTES.ROUTE_SUBMIT);
+    } else if (progress === 10 && currentSet === 2 && !isUserB) {
+      push(ROUTES.ROUTE_SUBMIT_SET_TWO);
+    }
+  }, [
+    progress,
+    currentSet,
+    isUserB,
+    postScores,
+    push,
+    conversationId,
+    location.pathname,
+    setIsUserB,
+  ]);
 
   const changeQuestionForward = useCallback(() => {
     // The questionnaire always presents the user with the last question on the remainingQuestions array. When the question is answered it is popped from the array and then pushed on to the questionsAnswered array. This is to allow us to go back in future.
@@ -67,23 +92,16 @@ export const useQuiz = () => {
     setProgress(progress - 1);
   }, [setRemainingQuestions, remainingQuestions, questionsAnswered, progress]);
 
-  // Handle answering of a question
-  const setAnswer = (questionId: number, answerId: string) => {
-    // Saving answer to state
-    if (currentSet === 1) {
-      dispatch({
-        type: 'ADD_SETONE',
-        action: { questionId: questionId, answerId: parseInt(answerId) },
-      });
-    }
-    if (currentSet === 2) {
-      dispatch({
-        type: 'ADD_SETTWO',
-        action: { questionId: questionId, answerId: parseInt(answerId) },
-      });
-    }
+  // Handle answering of a question and save the response to the response context
+  function setAnswer(questionId: number, answerId: string) {
+    // Set the correct dispatch type based on the question set the user is answering.
+    const dispatchType = currentSet === 1 ? 'ADD_SETONE' : 'ADD_SETTWO';
+    dispatch({
+      type: dispatchType,
+      action: { questionId: questionId, answerId: parseInt(answerId) },
+    });
     changeQuestionForward();
-  };
+  }
 
   // Setting the questions on load;
   useEffect(() => {

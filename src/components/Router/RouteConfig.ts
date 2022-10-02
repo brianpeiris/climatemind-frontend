@@ -15,9 +15,21 @@ const ROUTES_CONFIG = {
   ROUTE_FEED: '/climate-feed',
   ROUTE_REGISTER: '/sign-up',
   ROUTE_LOGIN: '/login',
+  ROUTE_PASSWORD_RESET: '/password-reset',
   ROUTE_SHARE_LINK: '/sharelink',
   ROUTE_LANDING: '/landing/:conversationId',
+  ROUTE_HOW_CM_WORKS: '/how-cm-works',
   PROFILE_MENU: '/profile-menu',
+  USERB_CORE_VALUES: '/core-values',
+  USERB_SHARED_VALUES: '/shared-values-user-b',
+  USERB_SHARED_IMPACTS: '/shared-impacts',
+  USERB_SHARED_SOLUTIONS: '/shared-solutions',
+  USERB_SHARED_SUMMARY: '/shared-summary',
+  USERB_ROUTE_REGISTER: '/sign-up-user-b',
+  USERB_SHARED_SUCCESS: '/shared',
+  SHARED_VALUES: '/shared-values',
+  USERA_SHARED_FEED: '/user-a-shared-feed',
+  USERB_NO_CONSENT: '/user-b/no-share',
 };
 
 export default ROUTES_CONFIG;
