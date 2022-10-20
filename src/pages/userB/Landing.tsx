@@ -51,16 +51,25 @@ const Landing: React.FC = () => {
 
   useEffect(() => {
     resetAppStateForUserB(conversationId ?? '');
-
     // eslint-disable-next-line
-  }, []);
+  }, [conversation]);
 
   // Conversation is validated, register user b visit. When the api returns get conversation
   useEffect(() => {
     if (conversation) {
       recordUserBVisit(conversationId);
+      if (conversation.consent) {
+        push({
+          pathname: `${ROUTES.USERB_SHARED_SUCCESS}/${conversationId}`,
+          state: {
+            from: location.pathname,
+            id: conversationId,
+            userAName: conversation?.userA?.name,
+          },
+        });
+      }
     }
-  }, [conversation, conversationId, recordUserBVisit]);
+  }, [conversation, conversationId, location.pathname, push, recordUserBVisit]);
 
   const handleHowCMWorks = () => {
     push({
@@ -116,7 +125,7 @@ const Landing: React.FC = () => {
           </Box>
           <Box component="div" pt={2} pb={2}>
             <Typography variant="body1" align="center">
-              We’ll match your core values and personalized climate topics with
+              We’ll match your core values and personalized climate topics with{' '}
               {conversation?.userA?.name}'s to unlock your potential to act
               together
             </Typography>
